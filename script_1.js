@@ -1,8 +1,6 @@
-
 let task = JSON.parse(localStorage.getItem("task")) || [];
 
 const form = document.getElementById("task-form");
-const imageInput = document.getElementById("task-image");
 const nameInput = document.getElementById("task-name");
 const descriptionInput = document.getElementById("task-description");
 const categoryInput = document.getElementById("task-category");
@@ -27,15 +25,15 @@ function renderTable() {
 
     row.innerHTML = `
       <td>${index + 1}</td>
-      <td><img src="${task.image}" width="50" height="50" alt="task image" /></td>
+      <td>${task.image}</td>
       <td>${task.name}</td>
       <td>${task.description}</td>
       <td>${task.category}</td>
       <td>${task.date}</td>
       <td>${task.status}</td>
       <td>
-        <button class="btn btn-sm btn-warning" onclick="editTask(${task.id})">Edit</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">Delete</button>
+        <button onclick="editTask(${task.id})">Edit</button>
+        <button onclick="deleteTask(${task.id})">Delete</button>
       </td>
     `;
 
@@ -46,60 +44,46 @@ function renderTable() {
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
+  // Validate form inputs
+  const image = imageInput.value.trim();
   const name = nameInput.value.trim();
   const description = descriptionInput.value.trim();
   const category = categoryInput.value.trim();
   const date = dateInput.value.trim();
   const status = statusInput.value.trim();
+
+  if (!image || !name || !description || !category || !date || !status) return alert("Please fill out all fields.");
+
   const id = taskId.value;
 
-  // Read the image file as base64
-  const file = imageInput.files[0];
-  if (!file && !id) return alert("Please select an image.");
-  if (!name || !description || !category || !date || !status) {
-    return alert("Please fill out all fields.");
-  }
-
-  const processTask = (imageData) => {
-    if (id) {
-      // Edit mode
-      const index = task.findIndex((p) => p.id == id);
-      task[index] = {
-        ...task[index],
-        name,
-        description,
-        category,
-        date,
-        status,
-        image: imageData || task[index].image
-      };
-    } else {
-      // Create new task
-      task.push({
-        id: Date.now(),
-        name,
-        description,
-        category,
-        date,
-        status,
-        image: imageData
-      });
-    }
-
-    saveToLocalStorage();
-    renderTable();
-    resetForm();
-  };
-
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      processTask(event.target.result); // base64 image
+  if (id) {
+    // Edit mode
+    const index = task.findIndex((p) => p.id == id);
+    task[index] = {
+      id,
+      name,
+      description,
+      category,
+      date,
+      status,
+      image
     };
-    reader.readAsDataURL(file);
   } else {
-    processTask(); // No image change
+    // Create new task
+    task.push({
+      id: Date.now(),
+      name,
+      description,
+      category,
+      date,
+      status,
+      image
+    });
   }
+
+  saveToLocalStorage();
+  renderTable();
+  resetForm();
 });
 
 function editTask(id) {
@@ -112,7 +96,7 @@ function editTask(id) {
   dateInput.value = taskToEdit.date;
   statusInput.value = taskToEdit.status;
   taskId.value = taskToEdit.id;
-  // We won't set image input here — browser doesn't allow pre-setting file input
+  imageInput.value = taskToEdit.image;
 }
 
 function deleteTask(id) {
