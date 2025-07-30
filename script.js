@@ -63,7 +63,7 @@ form.addEventListener("submit", function (e) {
   const processTask = (imageData) => {
     if (id) {
       // Edit mode
-      const index = task.findIndex((p) => p.id == id);
+      const index = task.findIndex((t) => t.id == id);
       task[index] = {
         ...task[index],
         name,
